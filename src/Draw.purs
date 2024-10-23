@@ -5,7 +5,7 @@ module Draw
   )
   where
 
-import Graphics.Canvas
+import Graphics.Canvas (Context2D, arc, fillPath, lineTo, moveTo, strokePath)
 import Prelude
 
 import Data.Foldable (traverse_)

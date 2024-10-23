@@ -5,7 +5,6 @@
         "path": "./",
         "core": {
           "dependencies": [
-            "aff",
             "canvas",
             "console",
             "effect",
@@ -23,7 +22,6 @@
             "web-html"
           ],
           "build_plan": [
-            "aff",
             "arraybuffer-types",
             "arrays",
             "bifunctors",
@@ -61,7 +59,6 @@
             "numbers",
             "ordered-collections",
             "orders",
-            "parallel",
             "partial",
             "prelude",
             "profunctor",
@@ -610,29 +607,6 @@
     "extra_packages": {}
   },
   "packages": {
-    "aff": {
-      "type": "registry",
-      "version": "8.0.0",
-      "integrity": "sha256-5MmdI4+0RHBtSBy+YlU3/Cq4R5W2ih3OaRedJIrVHdk=",
-      "dependencies": [
-        "bifunctors",
-        "control",
-        "datetime",
-        "effect",
-        "either",
-        "exceptions",
-        "foldable-traversable",
-        "functions",
-        "maybe",
-        "newtype",
-        "parallel",
-        "prelude",
-        "refs",
-        "tailrec",
-        "transformers",
-        "unsafe-coerce"
-      ]
-    },
     "arraybuffer-types": {
       "type": "registry",
       "version": "3.0.2",
@@ -1088,24 +1062,6 @@
       "dependencies": [
         "newtype",
         "prelude"
-      ]
-    },
-    "parallel": {
-      "type": "registry",
-      "version": "7.0.0",
-      "integrity": "sha256-gUC9i4Txnx9K9RcMLsjujbwZz6BB1bnE2MLvw4GIw5o=",
-      "dependencies": [
-        "control",
-        "effect",
-        "either",
-        "foldable-traversable",
-        "functors",
-        "maybe",
-        "newtype",
-        "prelude",
-        "profunctor",
-        "refs",
-        "transformers"
       ]
     },
     "partial": {

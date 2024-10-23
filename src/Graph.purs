@@ -14,7 +14,6 @@ module Data.Graph
 
 import Prelude
 
-import Data.Foldable (class Foldable)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Map as M
 import Data.Maybe (Maybe(..))

@@ -18,7 +18,7 @@ import Data.Foldable (class Foldable, sum)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Graph as G
 import Data.List as L
-import Data.Vector2 (Vec, vec)
+import Data.Vector2 (Vec)
 
 type Field = Number
 smul :: Field -> Vec Field -> Vec Field

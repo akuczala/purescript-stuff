@@ -4,16 +4,15 @@ module Test.Main
   )
   where
 
-import Data.Graph
 import Prelude
 
-import Data.Foldable (class Foldable, foldl)
+import Data.Graph (Edge(..), Graph, getVerts, neighbors, newGraph)
 import Data.List (scanl)
 import Data.List as L
 import Data.Map as M
 import Data.Set as S
 import Data.Tuple (Tuple(..))
-import Data.Vector2 (Vec, oneX, getX)
+import Data.Vector2 (getX, oneX)
 import Effect (Effect)
 import Effect.Class.Console (log)
 import Springy (Particle, Point, SpringConsts, smul, updateNetwork)

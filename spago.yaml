@@ -1,7 +1,6 @@
 package:
   name: drawing
   dependencies:
-    - aff
     - canvas
     - console
     - effect
