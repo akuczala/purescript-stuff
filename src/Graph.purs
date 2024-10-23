@@ -2,10 +2,12 @@ module Data.Graph
   ( Edge(..)
   , Graph
   , edgeContains
+  , getEdges
   , getVerts
   , lookup
   , neighbors
   , newGraph
+  , toMap
   , updateVertex
   )
   where
@@ -46,8 +48,14 @@ updateVertex k v (Graph g) = newGraph (M.insert k v g.verts) g.edges
 vertexMap :: forall k a b. (a -> b) -> Graph k a -> Graph k b
 vertexMap f (Graph g) = newGraph (map f g.verts) g.edges
 
+toMap :: forall k v. Graph k v -> M.Map k v
+toMap (Graph g) = g.verts
+
 getVerts :: forall f k v. Unfoldable f => Graph k v -> f (Tuple k v)
 getVerts (Graph g) = M.toUnfoldable g.verts
+
+getEdges :: forall k v. Graph k v -> S.Set (Edge k)
+getEdges (Graph g) = g.edges
 
 lookup :: forall k v. Ord k => k -> Graph k v -> Maybe v
 lookup k (Graph g) = M.lookup k g.verts

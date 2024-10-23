@@ -1,6 +1,5 @@
 module Test.Main
-  ( Entry(..)
-  , springConsts
+  ( springConsts
   , testGraph
   )
   where
@@ -20,7 +19,7 @@ import Effect.Class.Console (log)
 import Springy (Particle, Point, SpringConsts, smul, updateNetwork)
 
 springConsts :: SpringConsts
-springConsts = {k: 1.0, dx: 1.0}
+springConsts = {k: 1.0, dx: 1.0, drag: 0.0}
 main :: Effect Unit
 main = do
   log "🍕"
@@ -33,7 +32,6 @@ main = do
     newGraphs = scanl go graph (L.range 1 20)
     go g _ = updateNetwork springConsts 0.1 g
 
-data Entry k v = Entry k v (Array k)
 testGraph :: Graph Int Point
 testGraph = newGraph (
   M.fromFoldable [
