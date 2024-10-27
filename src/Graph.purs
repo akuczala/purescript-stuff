@@ -5,10 +5,11 @@ module Data.Graph
   , getEdges
   , getVerts
   , lookup
+  , modifyVertex
   , neighbors
   , newGraph
+  , setVertex
   , toMap
-  , updateVertex
   )
   where
 
@@ -41,8 +42,13 @@ newGraph vs es = Graph {verts: vs, edges: es}
 neighbors :: forall k v. Ord k => k -> Graph k v -> S.Set k
 neighbors k (Graph g) = S.mapMaybe (edgeOther k) g.edges
 
-updateVertex :: forall k v. Ord k => k -> v -> Graph k v -> Graph k v
-updateVertex k v (Graph g) = newGraph (M.insert k v g.verts) g.edges
+setVertex :: forall k v. Ord k => k -> v -> Graph k v -> Graph k v
+setVertex k v (Graph g) = newGraph (M.insert k v g.verts) g.edges
+
+modifyVertex :: forall k v. Ord k => k -> (v -> v) -> Graph k v -> Graph k v
+modifyVertex k f g = case lookup k g of
+    Just v -> setVertex k (f v) g
+    Nothing -> g
 
 vertexMap :: forall k a b. (a -> b) -> Graph k a -> Graph k b
 vertexMap f (Graph g) = newGraph (map f g.verts) g.edges

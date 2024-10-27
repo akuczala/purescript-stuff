@@ -6,8 +6,9 @@ module Main
 
 import Prelude
 
-import Data.Graph (Edge(..), Graph, newGraph)
-import Data.Int (floor)
+import Control.Monad.State (StateT, get, modify, runStateT)
+import Data.Graph (Edge(..), Graph, modifyVertex, newGraph)
+import Data.Int (floor, toNumber)
 import Data.Map as M
 import Data.Maybe (Maybe(..))
 import Data.Set as S
@@ -15,16 +16,21 @@ import Data.Tuple (Tuple(..))
 import Data.Vector2 (Vec(..))
 import Draw (drawNetwork)
 import Effect (Effect)
-import Effect.Timer (setTimeout)
+import Effect.Aff (Aff, launchAff_)
+import Effect.Class (liftEffect)
+import Events (MyEvent(..), eventProducer, inputConsumer, setupEventLoop)
 import Graphics.Canvas (Context2D, clearRect, getCanvasElementById, getContext2D, setFillStyle, setStrokeStyle)
 import Partial.Unsafe (unsafePartial)
-import Springy (Particle, SpringConsts, updateNetwork)
+import Springy (Particle, SpringConsts, Point, updateNetwork)
 import Web.DOM (Element)
 import Web.DOM.Document (toParentNode)
+import Web.DOM.Element (getBoundingClientRect, toEventTarget)
 import Web.DOM.ParentNode (QuerySelector(..), querySelector)
-import Web.HTML (window, Window)
+import Web.Event.Event (Event)
+import Web.HTML (window)
 import Web.HTML.HTMLDocument (toDocument)
-import Web.HTML.Window (document, requestAnimationFrame)
+import Web.HTML.Window (document)
+import Web.UIEvent.MouseEvent (clientX, clientY, fromEvent)
 
 getCanvas :: Effect Context2D
 getCanvas = unsafePartial do
@@ -48,22 +54,70 @@ springConsts = {k: 0.01, dx: 100.0, drag: 1.0}
 update :: forall k. Ord k => (Graph k Particle) -> (Graph k Particle)
 update = updateNetwork springConsts 0.01 
 
-render :: forall k. Ord k => (Graph k Particle) -> Context2D -> Window -> Effect Unit
-render g ctx w = do
+render :: forall k. Ord k => (Graph k Particle) -> Context2D -> Effect Unit
+render g ctx = do
   clearRect ctx {x: 0.0, y: 0.0, width: 800.0, height: 800.0}
   setFillStyle ctx "#ffaa00"
   setStrokeStyle ctx "#ffffff"
   drawNetwork ctx $ map _.x g
-  _ <- setTimeout framePeriod $ do
-    _ <- requestAnimationFrame (render (update g) ctx w) w
-    pure unit
-  pure unit
+
+type GlobalState = {
+  graph :: Graph Int Particle,
+  ctx :: Context2D,
+  canvas :: Element,
+  mousePos :: Maybe Point
+  }
 
 main :: Effect Unit
 main = do
-  w <- window
   ctx <- getCanvas
-  render simpleGraph ctx w
+  maybeNode <- getCanvasNode
+  case maybeNode of
+    Just node -> do
+      launchAff_ $ do
+        _ <- runStateT (setup node) {graph: simpleGraph, ctx: ctx, mousePos: Nothing, canvas: node}
+        pure unit
+    Nothing -> pure unit
+
+setup :: Element -> StateT GlobalState Aff Unit
+setup el = do
+  setupEventLoop (inputConsumer onEvent) (eventProducer framePeriod $ toEventTarget el)
+
+getMousePos :: Event -> Maybe Point
+getMousePos e = do
+  m <- fromEvent e
+  pure $ Vec (toNumber $ clientX m) (toNumber $ clientY m)
+
+toCanvasPos :: Element -> Point -> Effect Point
+toCanvasPos e (Vec mx my) = do
+  rect <- getBoundingClientRect e
+  pure $ Vec (mx - rect.left) (my - rect.top)
+
+onEvent :: MyEvent -> StateT GlobalState Aff Unit
+onEvent (MouseMove e) = do
+  case getMousePos e of
+    Just mousePos -> do
+      state <- get
+      newMousePos <- liftEffect $ (toCanvasPos state.canvas) mousePos
+      _ <- modify (\s -> s {mousePos=Just newMousePos})
+      pure unit
+    Nothing -> pure unit
+  
+onEvent (MouseDown _) = do
+  _ <- modify (
+    \s -> case s.mousePos of
+      Just mpos -> s {
+        graph= modifyVertex 0 (\p -> p {x=mpos}) s.graph
+        }
+      Nothing -> s
+    )
+  pure unit
+onEvent (Draw) = do
+  state <- get
+  _ <- liftEffect $ render state.graph state.ctx
+  _ <- modify (\s -> s {graph = update s.graph})
+  pure unit
+
 
 simpleGraph :: Graph Int Particle
 simpleGraph = map (\x -> {x: x, v: zero, m: 1.0}) $ newGraph (

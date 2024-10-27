@@ -5,8 +5,10 @@
         "path": "./",
         "core": {
           "dependencies": [
+            "aff-coroutines",
             "canvas",
             "console",
+            "coroutines",
             "effect",
             "foldable-traversable",
             "integers",
@@ -19,17 +21,23 @@
             "vectors",
             "web-dom",
             "web-events",
-            "web-html"
+            "web-html",
+            "web-uievents"
           ],
           "build_plan": [
+            "aff",
+            "aff-coroutines",
             "arraybuffer-types",
             "arrays",
+            "avar",
             "bifunctors",
             "canvas",
+            "catenable-lists",
             "console",
             "const",
             "contravariant",
             "control",
+            "coroutines",
             "datetime",
             "distributive",
             "effect",
@@ -40,6 +48,8 @@
             "foldable-traversable",
             "foreign",
             "foreign-object",
+            "free",
+            "freet",
             "functions",
             "functors",
             "gen",
@@ -59,6 +69,7 @@
             "numbers",
             "ordered-collections",
             "orders",
+            "parallel",
             "partial",
             "prelude",
             "profunctor",
@@ -80,7 +91,8 @@
             "web-events",
             "web-file",
             "web-html",
-            "web-storage"
+            "web-storage",
+            "web-uievents"
           ]
         },
         "test": {
@@ -607,6 +619,40 @@
     "extra_packages": {}
   },
   "packages": {
+    "aff": {
+      "type": "registry",
+      "version": "8.0.0",
+      "integrity": "sha256-5MmdI4+0RHBtSBy+YlU3/Cq4R5W2ih3OaRedJIrVHdk=",
+      "dependencies": [
+        "bifunctors",
+        "control",
+        "datetime",
+        "effect",
+        "either",
+        "exceptions",
+        "foldable-traversable",
+        "functions",
+        "maybe",
+        "newtype",
+        "parallel",
+        "prelude",
+        "refs",
+        "tailrec",
+        "transformers",
+        "unsafe-coerce"
+      ]
+    },
+    "aff-coroutines": {
+      "type": "registry",
+      "version": "9.0.0",
+      "integrity": "sha256-7OEJhIW91eT5I20w4yEwmeSMHShRSPG2tPVOGA9vi1g=",
+      "dependencies": [
+        "aff",
+        "avar",
+        "coroutines",
+        "effect"
+      ]
+    },
     "arraybuffer-types": {
       "type": "registry",
       "version": "3.0.2",
@@ -634,6 +680,19 @@
         "unsafe-coerce"
       ]
     },
+    "avar": {
+      "type": "registry",
+      "version": "5.0.0",
+      "integrity": "sha256-e7hf0x4hEpcygXP0LtvfvAQ49Bbj2aWtZT3gqM///0A=",
+      "dependencies": [
+        "aff",
+        "effect",
+        "either",
+        "exceptions",
+        "functions",
+        "maybe"
+      ]
+    },
     "bifunctors": {
       "type": "registry",
       "version": "6.0.0",
@@ -656,6 +715,20 @@
         "exceptions",
         "functions",
         "maybe"
+      ]
+    },
+    "catenable-lists": {
+      "type": "registry",
+      "version": "7.0.0",
+      "integrity": "sha256-76vYENhwF4BWTBsjeLuErCH2jqVT4M3R1HX+4RwSftA=",
+      "dependencies": [
+        "control",
+        "foldable-traversable",
+        "lists",
+        "maybe",
+        "prelude",
+        "tuples",
+        "unfoldable"
       ]
     },
     "console": {
@@ -696,6 +769,16 @@
       "dependencies": [
         "newtype",
         "prelude"
+      ]
+    },
+    "coroutines": {
+      "type": "registry",
+      "version": "7.0.0",
+      "integrity": "sha256-w0ftoTTR6fIkCgQctMzeTJdbY2lenEiklt0TRZeCqY8=",
+      "dependencies": [
+        "freet",
+        "parallel",
+        "profunctor"
       ]
     },
     "datetime": {
@@ -839,6 +922,44 @@
         "tuples",
         "typelevel-prelude",
         "unfoldable"
+      ]
+    },
+    "free": {
+      "type": "registry",
+      "version": "7.1.0",
+      "integrity": "sha256-JAumgEsGSzJCNLD8AaFvuX7CpqS5yruCngi6yI7+V5k=",
+      "dependencies": [
+        "catenable-lists",
+        "control",
+        "distributive",
+        "either",
+        "exists",
+        "foldable-traversable",
+        "invariant",
+        "lazy",
+        "maybe",
+        "prelude",
+        "tailrec",
+        "transformers",
+        "tuples",
+        "unsafe-coerce"
+      ]
+    },
+    "freet": {
+      "type": "registry",
+      "version": "7.0.0",
+      "integrity": "sha256-zkL6wU4ZPq8xz1kGFxoliWqyhBksepMJTyA68VEBaJo=",
+      "dependencies": [
+        "aff",
+        "bifunctors",
+        "effect",
+        "either",
+        "exists",
+        "free",
+        "prelude",
+        "tailrec",
+        "transformers",
+        "tuples"
       ]
     },
     "functions": {
@@ -1062,6 +1183,24 @@
       "dependencies": [
         "newtype",
         "prelude"
+      ]
+    },
+    "parallel": {
+      "type": "registry",
+      "version": "7.0.0",
+      "integrity": "sha256-gUC9i4Txnx9K9RcMLsjujbwZz6BB1bnE2MLvw4GIw5o=",
+      "dependencies": [
+        "control",
+        "effect",
+        "either",
+        "foldable-traversable",
+        "functors",
+        "maybe",
+        "newtype",
+        "prelude",
+        "profunctor",
+        "refs",
+        "transformers"
       ]
     },
     "partial": {
@@ -1318,6 +1457,14 @@
       "dependencies": [
         "nullable",
         "web-events"
+      ]
+    },
+    "web-uievents": {
+      "type": "registry",
+      "version": "5.0.0",
+      "integrity": "sha256-5I+ut9JYno3wowti3vJGs1afKCm1ucppKuy+zhuSyss=",
+      "dependencies": [
+        "web-html"
       ]
     }
   }
