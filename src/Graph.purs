@@ -1,6 +1,7 @@
 module Data.Graph
   ( Edge(..)
   , Graph
+  , addVertex
   , edgeContains
   , getEdges
   , getVerts
@@ -15,8 +16,9 @@ module Data.Graph
 import Prelude
 
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
+import Data.Map (findMax)
 import Data.Map as M
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set as S
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable)
@@ -44,6 +46,11 @@ neighbors k (Graph g) = S.mapMaybe (edgeOther k) g.edges
 
 setVertex :: forall k v. Ord k => k -> v -> Graph k v -> Graph k v
 setVertex k v (Graph g) = newGraph (M.insert k v g.verts) g.edges
+
+addVertex :: forall v. v -> Graph Int v -> Graph Int v
+addVertex v (Graph g) = setVertex newLabel v (Graph g)
+  where
+  newLabel = 1 + (fromMaybe (-1) <<< map _.key $ findMax g.verts)
 
 modifyVertex :: forall k v. Ord k => k -> (v -> v) -> Graph k v -> Graph k v
 modifyVertex k f g = case lookup k g of
