@@ -18,8 +18,12 @@ import Draw (drawNetwork)
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (logShow)
 import Events (MyEvent(..), eventProducer, inputConsumer, setupEventLoop)
-import Graphics.Canvas (Context2D, clearRect, getCanvasElementById, getContext2D, setFillStyle, setStrokeStyle)
+import Graphics.Canvas (
+  Context2D, clearRect, getCanvasElementById, getContext2D, setFillStyle,
+  setStrokeStyle
+  )
 import Partial.Unsafe (unsafePartial)
 import Springy (Particle, SpringConsts, Point, updateNetwork)
 import Web.DOM (Element)
@@ -30,6 +34,8 @@ import Web.Event.Event (Event)
 import Web.HTML (window)
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window (document)
+import Web.UIEvent.KeyboardEvent (key)
+import Web.UIEvent.KeyboardEvent as KB
 import Web.UIEvent.MouseEvent (clientX, clientY, fromEvent)
 
 getCanvas :: Effect Context2D
@@ -49,10 +55,10 @@ framePeriod :: Int
 framePeriod = floor $ 1000.0 / frameRate
 
 springConsts :: SpringConsts
-springConsts = {k: 0.01, dx: 100.0, drag: 1.0}
+springConsts = {k: 0.01, dx: 100.0, drag: 5.0}
 
 update :: forall k. Ord k => (Graph k Particle) -> (Graph k Particle)
-update = updateNetwork springConsts 0.01 
+update = updateNetwork springConsts 0.005 
 
 render :: forall k. Ord k => (Graph k Particle) -> Context2D -> Effect Unit
 render g ctx = do
@@ -65,17 +71,28 @@ type GlobalState = {
   graph :: Graph Int Particle,
   ctx :: Context2D,
   canvas :: Element,
-  mousePos :: Maybe Point
+  mousePos :: Maybe Point,
+  selectedVertex :: Maybe Int
   }
+initialState :: Context2D -> Element -> GlobalState
+initialState ctx node = {
+  graph: simpleGraph,
+  ctx: ctx,
+  mousePos: Nothing,
+  canvas: node,
+  selectedVertex: Nothing
+}
+
 
 main :: Effect Unit
 main = do
   ctx <- getCanvas
-  maybeNode <- getCanvasNode
-  case maybeNode of
-    Just node -> do
+  maybeCanvasNode <- getCanvasNode
+  -- testKey
+  case maybeCanvasNode of
+    Just canvasNode -> do
       launchAff_ $ do
-        _ <- runStateT (setup node) {graph: simpleGraph, ctx: ctx, mousePos: Nothing, canvas: node}
+        _ <- runStateT (setup canvasNode) (initialState ctx canvasNode)
         pure unit
     Nothing -> pure unit
 
@@ -112,6 +129,14 @@ onEvent (MouseDown _) = do
       Nothing -> s
     )
   pure unit
+
+onEvent (KeyDown e) = do
+  case map key (KB.fromEvent e) of
+    Just "c" -> liftEffect $ logShow "wow"
+    _ -> pure unit
+
+onEvent (Wheel _) = pure unit
+
 onEvent (Draw) = do
   state <- get
   _ <- liftEffect $ render state.graph state.ctx
