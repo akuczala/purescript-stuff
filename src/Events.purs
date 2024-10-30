@@ -25,11 +25,12 @@ import Web.Event.Internal.Types (Event, EventTarget)
 import Web.HTML (window)
 import Web.HTML.Window (requestAnimationFrame, toEventTarget)
 import Web.UIEvent.KeyboardEvent.EventTypes (keydown)
-import Web.UIEvent.MouseEvent.EventTypes (mousedown, mousemove)
+import Web.UIEvent.MouseEvent.EventTypes (mousedown, mousemove, mouseup)
 import Web.UIEvent.WheelEvent.EventTypes (wheel)
 
 data MyEvent
   = MouseDown Event
+  | MouseUp Event
   | MouseMove Event
   | KeyDown Event
   | Wheel Event
@@ -64,6 +65,7 @@ eventProducer waitTime target = produce' \emitter -> do
     traverse_ (uncurry $ makeAddListener emitter target)
       [ Tuple mousedown MouseDown
       , Tuple mousemove MouseMove
+      , Tuple mouseup MouseUp
       , Tuple wheel Wheel
       ]
 

@@ -1,5 +1,6 @@
 module Test.Main
-  ( springConsts
+  ( main
+  , springConsts
   , testGraph
   )
   where
@@ -15,7 +16,8 @@ import Data.Tuple (Tuple(..))
 import Data.Vector2 (getX, oneX)
 import Effect (Effect)
 import Effect.Class.Console (log)
-import Springy (Particle, Point, SpringConsts, smul, updateNetwork)
+import Geometry (Point, smul)
+import Springy (Particle, SpringConsts, updateNetwork)
 
 springConsts :: SpringConsts
 springConsts = {k: 1.0, dx: 1.0, drag: 0.0}

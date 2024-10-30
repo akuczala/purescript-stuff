@@ -1,12 +1,9 @@
 module Springy
-  ( Field
-  , Force
+  ( Force
   , Particle
-  , Point
   , SpringConsts
   , Velocity
   , netForce
-  , smul
   , update
   , updateNetwork
   ) where
@@ -18,16 +15,8 @@ import Data.FunctorWithIndex (mapWithIndex)
 import Data.Graph as G
 import Data.List as L
 import Data.Vector2 (Vec)
+import Geometry (Field, Point, dot, smul)
 
-type Field = Number
-
-smul :: Field -> Vec Field -> Vec Field
-smul a v = map ((*) a) v
-
-dot :: Vec Field -> Vec Field -> Field
-dot v1 v2 = sum $ v1 * v2
-
-type Point = Vec Field
 type Velocity = Vec Field
 type Force = Vec Field
 
