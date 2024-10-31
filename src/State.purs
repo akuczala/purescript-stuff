@@ -29,7 +29,7 @@ initialState ctx node =
   , mousePos: Nothing
   , mouseHeld: false
   , canvas: node
-  , selectedVertex: Just 0
+  , selectedVertex: Nothing
   }
 
 simpleGraph :: Graph Int Particle

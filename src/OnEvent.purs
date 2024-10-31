@@ -1,14 +1,16 @@
 module OnEvent
-  ( onEvent
+  ( onCreateNodeEvent
+  , onEvent
   ) where
 
 import Prelude
 
-import Constants (springConsts)
-import Control.Monad.State (StateT, get, modify)
-import Data.Graph (addVertex, modifyVertex)
+import Constants (nodeRadius, springConsts)
+import Control.Alternative (guard)
+import Control.Monad.State (StateT, get, modify, modify_, put)
+import Data.Graph (addVertex, modifyVertex, toMap)
 import Data.Int (toNumber)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Data.Vector2 (Vec(..))
 import Draw (render)
@@ -16,7 +18,7 @@ import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Events (MyEvent(..))
-import Geometry (Point)
+import Geometry (Field, Point, closestPoint, distance)
 import Springy (updateNetwork)
 import State (GlobalState)
 import Web.DOM (Element)
@@ -42,17 +44,15 @@ onEvent (MouseMove e) = do
     Just mousePos -> do
       state <- get
       newMousePos <- liftEffect $ (toCanvasPos state.canvas) mousePos
-      _ <- modify (\s -> s { mousePos = Just newMousePos })
-      pure unit
+      modify_ (\s -> s { mousePos = Just newMousePos })
     Nothing -> pure unit
 
 onEvent (MouseDown _) = do
-  _ <- modify (\s -> s { mouseHeld = true })
-  pure unit
+  state <- modify selectNode
+  put state { mouseHeld = true }
 
 onEvent (MouseUp _) = do
-  _ <- modify (\s -> s { mouseHeld = false })
-  pure unit
+  modify_ (\s -> s { mouseHeld = false })
 
 onEvent (KeyDown e) = do
   case map key (KB.fromEvent e) of
@@ -64,18 +64,29 @@ onEvent (Wheel _) = pure unit
 onEvent (Draw) = do
   state <- get
   _ <- liftEffect $ render state
-  _ <- modify update
-  pure unit
+  modify_ update
+
+nodeCloseToMouse :: Field -> GlobalState -> Maybe (Tuple Int Point)
+nodeCloseToMouse minDist state = do
+  mpos <- state.mousePos
+  (Tuple label v) <- closestPoint (toMap $ map _.x state.graph) mpos
+  guard $ distance mpos v <= minDist
+  pure (Tuple label v)
+
+selectNode :: GlobalState -> GlobalState
+selectNode state = fromMaybe state do
+  guard $ not state.mouseHeld
+  (Tuple label _) <- nodeCloseToMouse nodeRadius state
+  pure $ state { selectedVertex = Just label }
 
 onCreateNodeEvent :: forall m. Monad m => StateT GlobalState m Unit
 onCreateNodeEvent = do
-  _ <- modify
+  modify_
     ( \s ->
         case s.mousePos of
           Just mPos -> s { graph = addVertex { x: mPos, v: zero, m: 1.0 } s.graph }
           Nothing -> s
     )
-  pure unit
 
 update :: GlobalState -> GlobalState
 update state = testMoveNode $ state
@@ -83,8 +94,12 @@ update state = testMoveNode $ state
   }
 
 testMoveNode :: GlobalState -> GlobalState
-testMoveNode s = case Tuple s.mouseHeld s.mousePos of
-  Tuple true (Just mpos) -> s
-    { graph = modifyVertex 0 (\p -> p { x = mpos }) s.graph
+testMoveNode s = fromMaybe s do
+  guard s.mouseHeld
+  mpos <- s.mousePos
+  selectedLabel <- s.selectedVertex
+  (Tuple closestLabel _) <- nodeCloseToMouse (nodeRadius * 2.0) s
+  guard $ selectedLabel == closestLabel
+  pure s
+    { graph = modifyVertex selectedLabel (\p -> p { x = mpos }) s.graph
     }
-  _ -> s

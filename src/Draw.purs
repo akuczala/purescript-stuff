@@ -7,7 +7,7 @@ module Draw
 
 import Prelude
 
-import Constants (edgeColor, nodeColor, selectedNodeColor)
+import Constants (edgeColor, nodeColor, nodeRadius, selectedNodeColor)
 import Data.Foldable (traverse_)
 import Data.Graph (lookup)
 import Data.Graph as G
@@ -53,7 +53,7 @@ drawNode :: Context2D -> Point -> Effect Unit
 drawNode ctx p = fillPath ctx $ drawCircle ctx
   { x: V.getX p
   , y: V.getY p
-  , radius: 10.0
+  , radius: nodeRadius
   }
 
 render :: GlobalState -> Effect Unit
