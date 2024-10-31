@@ -5096,17 +5096,19 @@
   var fromEvent2 = /* @__PURE__ */ unsafeReadProtoTagged("MouseEvent");
 
   // output/OnEvent/index.js
-  var zero2 = /* @__PURE__ */ zero(/* @__PURE__ */ semiringVec(semiringNumber));
   var bind13 = /* @__PURE__ */ bind(bindMaybe);
   var closestPoint2 = /* @__PURE__ */ closestPoint(ordInt);
   var map10 = /* @__PURE__ */ map(functorGraph);
-  var discard2 = /* @__PURE__ */ discard(discardUnit)(bindMaybe);
+  var discard2 = /* @__PURE__ */ discard(discardUnit);
+  var discard1 = /* @__PURE__ */ discard2(bindMaybe);
   var guard2 = /* @__PURE__ */ guard(alternativeMaybe);
   var pure1 = /* @__PURE__ */ pure(applicativeMaybe);
   var modifyVertex2 = /* @__PURE__ */ modifyVertex(ordInt);
   var updateNetwork2 = /* @__PURE__ */ updateNetwork(ordInt);
+  var zero2 = /* @__PURE__ */ zero(/* @__PURE__ */ semiringVec(semiringNumber));
   var addEdge2 = /* @__PURE__ */ addEdge(ordInt);
-  var bind22 = /* @__PURE__ */ bind(/* @__PURE__ */ bindStateT(monadAff));
+  var bindStateT2 = /* @__PURE__ */ bindStateT(monadAff);
+  var bind22 = /* @__PURE__ */ bind(bindStateT2);
   var monadStateStateT2 = /* @__PURE__ */ monadStateStateT(monadAff);
   var get2 = /* @__PURE__ */ get(monadStateStateT2);
   var liftEffect6 = /* @__PURE__ */ liftEffect(/* @__PURE__ */ monadEffectState(monadEffectAff));
@@ -5115,6 +5117,7 @@
   var modify2 = /* @__PURE__ */ modify(monadStateStateT2);
   var put4 = /* @__PURE__ */ put(monadStateStateT2);
   var map12 = /* @__PURE__ */ map(functorMaybe);
+  var discard22 = /* @__PURE__ */ discard2(bindStateT2);
   var toCanvasPos = function(e) {
     return function(v) {
       return function __do4() {
@@ -5123,40 +5126,13 @@
       };
     };
   };
-  var onCreateNodeEvent = function(dictMonad) {
-    return modify_(monadStateStateT(dictMonad))(function(s) {
-      if (s.mousePos instanceof Just) {
-        var $59 = {};
-        for (var $60 in s) {
-          if ({}.hasOwnProperty.call(s, $60)) {
-            $59[$60] = s[$60];
-          }
-          ;
-        }
-        ;
-        $59.graph = addVertex({
-          x: s.mousePos.value0,
-          v: zero2,
-          m: 1
-        })(s.graph);
-        return $59;
-      }
-      ;
-      if (s.mousePos instanceof Nothing) {
-        return s;
-      }
-      ;
-      throw new Error("Failed pattern match at OnEvent (line 87, column 9 - line 89, column 23): " + [s.mousePos.constructor.name]);
-    });
-  };
-  var onCreateNodeEvent1 = /* @__PURE__ */ onCreateNodeEvent(monadAff);
   var nodeCloseToMouse = function(minDist) {
     return function(state3) {
       return bind13(state3.mousePos)(function(mpos) {
         return bind13(closestPoint2(toMap(map10(function(v) {
           return v.x;
         })(state3.graph)))(mpos))(function(v) {
-          return discard2(guard2(distance(mpos)(v.value1) <= minDist))(function() {
+          return discard1(guard2(distance(mpos)(v.value1) <= minDist))(function() {
             return pure1(new Tuple(v.value0, v.value1));
           });
         });
@@ -5164,11 +5140,12 @@
     };
   };
   var selectNode = function(state3) {
-    return fromMaybe(state3)(discard2(guard2(!state3.mouseHeld))(function() {
+    return fromMaybe(state3)(discard1(guard2(!state3.mouseHeld))(function() {
       return bind13(nodeCloseToMouse(nodeRadius)(state3))(function(v) {
         return pure1({
           canvas: state3.canvas,
           ctx: state3.ctx,
+          dragging: state3.dragging,
           graph: state3.graph,
           mouseHeld: state3.mouseHeld,
           mousePos: state3.mousePos,
@@ -5177,25 +5154,43 @@
       });
     }));
   };
-  var testMoveNode = function(s) {
-    return fromMaybe(s)(discard2(guard2(s.mouseHeld))(function() {
+  var getMousePos = function(e) {
+    return bind13(fromEvent2(e))(function(m) {
+      return pure1(new Vec(toNumber(clientX(m)), toNumber(clientY(m))));
+    });
+  };
+  var dragNode = function(s) {
+    return fromMaybe(s)(discard1(guard2(s.mouseHeld))(function() {
       return bind13(s.mousePos)(function(mpos) {
         return bind13(s.selectedVertex)(function(selectedLabel) {
-          return bind13(nodeCloseToMouse(nodeRadius * 2)(s))(function(v) {
-            return discard2(guard2(selectedLabel === v.value0))(function() {
+          if (s.dragging) {
+            return pure1({
+              canvas: s.canvas,
+              ctx: s.ctx,
+              mouseHeld: s.mouseHeld,
+              mousePos: s.mousePos,
+              selectedVertex: s.selectedVertex,
+              graph: modifyVertex2(selectedLabel)(function(p) {
+                return {
+                  m: p.m,
+                  v: p.v,
+                  x: mpos
+                };
+              })(s.graph),
+              dragging: true
+            });
+          }
+          ;
+          return bind13(nodeCloseToMouse(nodeRadius)(s))(function(v) {
+            return discard1(guard2(selectedLabel === v.value0))(function() {
               return pure1({
                 canvas: s.canvas,
                 ctx: s.ctx,
+                graph: s.graph,
                 mouseHeld: s.mouseHeld,
                 mousePos: s.mousePos,
                 selectedVertex: s.selectedVertex,
-                graph: modifyVertex2(selectedLabel)(function(p) {
-                  return {
-                    m: p.m,
-                    v: p.v,
-                    x: mpos
-                  };
-                })(s.graph)
+                dragging: true
               });
             });
           });
@@ -5204,27 +5199,41 @@
     }));
   };
   var update2 = function(state3) {
-    return testMoveNode({
+    return dragNode({
       ctx: state3.ctx,
       canvas: state3.canvas,
       mousePos: state3.mousePos,
       mouseHeld: state3.mouseHeld,
+      dragging: state3.dragging,
       selectedVertex: state3.selectedVertex,
       graph: updateNetwork2(springConsts)(5e-3)(state3.graph)
     });
   };
-  var getMousePos = function(e) {
-    return bind13(fromEvent2(e))(function(m) {
-      return pure1(new Vec(toNumber(clientX(m)), toNumber(clientY(m))));
-    });
+  var createNode = function(state3) {
+    return fromMaybe(state3)(bind13(state3.mousePos)(function(mPos) {
+      return pure1({
+        canvas: state3.canvas,
+        ctx: state3.ctx,
+        dragging: state3.dragging,
+        mouseHeld: state3.mouseHeld,
+        mousePos: state3.mousePos,
+        selectedVertex: state3.selectedVertex,
+        graph: addVertex({
+          x: mPos,
+          v: zero2,
+          m: 1
+        })(state3.graph)
+      });
+    }));
   };
   var createEdge = function(state3) {
     return fromMaybe(state3)(bind13(state3.selectedVertex)(function(selectedLabel) {
       return bind13(nodeCloseToMouse(nodeRadius)(state3))(function(v) {
-        return discard2(guard2(selectedLabel !== v.value0))(function() {
+        return discard1(guard2(selectedLabel !== v.value0))(function() {
           return pure1({
             canvas: state3.canvas,
             ctx: state3.ctx,
+            dragging: state3.dragging,
             mouseHeld: state3.mouseHeld,
             mousePos: state3.mousePos,
             selectedVertex: state3.selectedVertex,
@@ -5241,16 +5250,16 @@
         return bind22(get2)(function(state3) {
           return bind22(liftEffect6(toCanvasPos(state3.canvas)(v1.value0)))(function(newMousePos) {
             return modify_2(function(s) {
-              var $77 = {};
-              for (var $78 in s) {
-                if ({}.hasOwnProperty.call(s, $78)) {
-                  $77[$78] = s[$78];
+              var $70 = {};
+              for (var $71 in s) {
+                if ({}.hasOwnProperty.call(s, $71)) {
+                  $70[$71] = s[$71];
                 }
                 ;
               }
               ;
-              $77.mousePos = new Just(newMousePos);
-              return $77;
+              $70.mousePos = new Just(newMousePos);
+              return $70;
             });
           });
         });
@@ -5260,7 +5269,7 @@
         return pure22(unit);
       }
       ;
-      throw new Error("Failed pattern match at OnEvent (line 43, column 3 - line 48, column 25): " + [v1.constructor.name]);
+      throw new Error("Failed pattern match at OnEvent (line 42, column 3 - line 47, column 25): " + [v1.constructor.name]);
     }
     ;
     if (v instanceof MouseDown) {
@@ -5268,6 +5277,7 @@
         return put4({
           canvas: state3.canvas,
           ctx: state3.ctx,
+          dragging: state3.dragging,
           graph: state3.graph,
           mousePos: state3.mousePos,
           selectedVertex: state3.selectedVertex,
@@ -5278,23 +5288,24 @@
     ;
     if (v instanceof MouseUp) {
       return modify_2(function(s) {
-        var $83 = {};
-        for (var $84 in s) {
-          if ({}.hasOwnProperty.call(s, $84)) {
-            $83[$84] = s[$84];
+        var $76 = {};
+        for (var $77 in s) {
+          if ({}.hasOwnProperty.call(s, $77)) {
+            $76[$77] = s[$77];
           }
           ;
         }
         ;
-        $83.mouseHeld = false;
-        return $83;
+        $76.mouseHeld = false;
+        $76.dragging = false;
+        return $76;
       });
     }
     ;
     if (v instanceof KeyDown) {
       var v1 = map12(key)(fromEvent(v.value0));
       if (v1 instanceof Just && v1.value0 === "c") {
-        return onCreateNodeEvent1;
+        return modify_2(createNode);
       }
       ;
       if (v1 instanceof Just && v1.value0 === "e") {
@@ -5310,13 +5321,13 @@
     ;
     if (v instanceof Draw) {
       return bind22(get2)(function(state3) {
-        return bind22(liftEffect6(render(state3)))(function() {
+        return discard22(liftEffect6(render(state3)))(function() {
           return modify_2(update2);
         });
       });
     }
     ;
-    throw new Error("Failed pattern match at OnEvent (line 41, column 1 - line 41, column 50): " + [v.constructor.name]);
+    throw new Error("Failed pattern match at OnEvent (line 40, column 1 - line 40, column 50): " + [v.constructor.name]);
   };
 
   // output/State/index.js
@@ -5337,6 +5348,7 @@
         ctx,
         mousePos: Nothing.value,
         mouseHeld: false,
+        dragging: false,
         canvas: node,
         selectedVertex: Nothing.value
       };

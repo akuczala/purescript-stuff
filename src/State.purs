@@ -19,6 +19,7 @@ type GlobalState =
   , canvas :: Element
   , mousePos :: Maybe Point
   , mouseHeld :: Boolean
+  , dragging :: Boolean
   , selectedVertex :: Maybe Int
   }
 
@@ -28,6 +29,7 @@ initialState ctx node =
   , ctx: ctx
   , mousePos: Nothing
   , mouseHeld: false
+  , dragging: false
   , canvas: node
   , selectedVertex: Nothing
   }

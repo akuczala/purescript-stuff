@@ -1,6 +1,5 @@
 module OnEvent
-  ( onCreateNodeEvent
-  , onEvent
+  ( onEvent
   ) where
 
 import Prelude
@@ -52,11 +51,11 @@ onEvent (MouseDown _) = do
   put state { mouseHeld = true }
 
 onEvent (MouseUp _) = do
-  modify_ (\s -> s { mouseHeld = false })
+  modify_ (\s -> s { mouseHeld = false, dragging = false })
 
 onEvent (KeyDown e) = do
   case map key (KB.fromEvent e) of
-    Just "c" -> onCreateNodeEvent
+    Just "c" -> modify_ createNode
     Just "e" -> modify_ createEdge
     _ -> pure unit
 
@@ -64,7 +63,7 @@ onEvent (Wheel _) = pure unit
 
 onEvent (Draw) = do
   state <- get
-  _ <- liftEffect $ render state
+  liftEffect $ render state
   modify_ update
 
 nodeCloseToMouse :: Field -> GlobalState -> Maybe (Tuple Int Point)
@@ -80,14 +79,12 @@ selectNode state = fromMaybe state do
   (Tuple label _) <- nodeCloseToMouse nodeRadius state
   pure $ state { selectedVertex = Just label }
 
-onCreateNodeEvent :: forall m. Monad m => StateT GlobalState m Unit
-onCreateNodeEvent = do
-  modify_
-    ( \s ->
-        case s.mousePos of
-          Just mPos -> s { graph = addVertex { x: mPos, v: zero, m: 1.0 } s.graph }
-          Nothing -> s
-    )
+createNode :: GlobalState -> GlobalState
+createNode state = fromMaybe state do
+  mPos <- state.mousePos
+  pure state
+    { graph = addVertex { x: mPos, v: zero, m: 1.0 } state.graph
+    }
 
 createEdge :: GlobalState -> GlobalState
 createEdge state = fromMaybe state do
@@ -99,17 +96,23 @@ createEdge state = fromMaybe state do
     }
 
 update :: GlobalState -> GlobalState
-update state = testMoveNode $ state
+update state = dragNode state
   { graph = updateNetwork springConsts 0.005 state.graph
   }
 
-testMoveNode :: GlobalState -> GlobalState
-testMoveNode s = fromMaybe s do
+dragNode :: GlobalState -> GlobalState
+dragNode s = fromMaybe s do
   guard s.mouseHeld
-  mpos <- s.mousePos
   selectedLabel <- s.selectedVertex
-  (Tuple closestLabel _) <- nodeCloseToMouse (nodeRadius * 2.0) s
-  guard $ selectedLabel == closestLabel
-  pure s
-    { graph = modifyVertex selectedLabel (\p -> p { x = mpos }) s.graph
-    }
+  if s.dragging then do
+    mpos <- s.mousePos
+    pure s
+      { graph = modifyVertex selectedLabel (\p -> p { x = mpos }) s.graph
+      , dragging = true
+      }
+  else do
+    (Tuple closestLabel _) <- nodeCloseToMouse nodeRadius s
+    guard $ selectedLabel == closestLabel
+    pure s
+      { dragging = true
+      }
