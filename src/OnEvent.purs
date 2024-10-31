@@ -6,6 +6,7 @@ import Prelude
 
 import Constants (nodeRadius, springConsts)
 import Control.Alternative (guard)
+import Control.Monad.Reader (runReader)
 import Control.Monad.State (StateT, get, modify, modify_, put)
 import Data.Graph (Edge(..), addEdge, addVertex, modifyVertex, toMap)
 import Data.Int (toNumber)
@@ -97,7 +98,7 @@ createEdge state = fromMaybe state do
 
 update :: GlobalState -> GlobalState
 update state = dragNode state
-  { graph = updateNetwork springConsts 0.005 state.graph
+  { graph = runReader (updateNetwork 0.005 state.graph) springConsts
   }
 
 dragNode :: GlobalState -> GlobalState

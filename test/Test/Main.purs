@@ -7,6 +7,7 @@ module Test.Main
 
 import Prelude
 
+import Control.Monad.Reader (runReader)
 import Data.Graph (Edge(..), Graph, getVerts, neighbors, newGraph)
 import Data.List (scanl)
 import Data.List as L
@@ -31,7 +32,7 @@ main = do
     positionGraph = testGraph
     graph = map (\x -> {x: x, v: zero, m: 1.0}) positionGraph
     newGraphs = scanl go graph (L.range 1 20)
-    go g _ = updateNetwork springConsts 0.1 g
+    go g _ = runReader (updateNetwork 0.1 g) springConsts
 
 testGraph :: Graph Int Point
 testGraph = newGraph (

@@ -3,17 +3,17 @@ module Springy
   , Particle
   , SpringConsts
   , Velocity
-  , netForce
-  , update
   , updateNetwork
   ) where
 
 import Prelude
 
+import Control.Monad.Reader (Reader, asks)
 import Data.Foldable (class Foldable, sum)
-import Data.FunctorWithIndex (mapWithIndex)
 import Data.Graph as G
 import Data.List as L
+import Data.Traversable (class Traversable, traverse)
+import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Vector2 (Vec)
 import Geometry (Field, Point, dot, smul)
 
@@ -23,15 +23,20 @@ type Force = Vec Field
 type Particle = { m :: Field, x :: Point, v :: Velocity }
 type SpringConsts = { k :: Field, dx :: Field, drag :: Field }
 
-pairForce :: SpringConsts -> Point -> Point -> Force
-pairForce consts p1 p2 =
-  ( consts.k * (dot delta delta - consts.dx * consts.dx)
-  ) `smul` delta
+pairForce :: Point -> Point -> Reader SpringConsts Force
+pairForce p1 p2 = do
+  k <- asks _.k
+  dx <- asks _.dx
+  pure $
+    ( k * (dot delta delta - dx * dx)
+    ) `smul` delta
   where
   delta = p1 - p2
 
-dragForce :: Field -> Velocity -> Force
-dragForce drag_coef v = -drag_coef `smul` v
+dragForce :: Velocity -> Reader SpringConsts Force
+dragForce v = do
+  drag_coef <- asks _.drag
+  pure $ -drag_coef `smul` v
 
 update :: Field -> Force -> Particle -> Particle
 update dt f part =
@@ -44,26 +49,28 @@ update dt f part =
 netForce
   :: forall f
    . Foldable f
+  => Traversable f
   => Functor f
-  => SpringConsts
-  -> f Particle
+  => f Particle
   -> Particle
-  -> Force
-netForce consts parts part = dragForce consts.drag part.v +
-  ( sum $ map (\parti -> pairForce consts parti.x part.x) parts
-  )
+  -> Reader SpringConsts Force
+netForce parts part = do
+  df <- dragForce part.v
+  sf <- sum <$> traverse (\parti -> pairForce parti.x part.x) parts
+  pure $ df + sf
 
+-- TODO: put dt in reader
 updateNetwork
   :: forall k
    . Ord k
-  => SpringConsts
-  -> Field
+  => Field
   -> G.Graph k Particle
-  -> G.Graph k Particle
-updateNetwork consts dt g = mapWithIndex stuff g
+  -> Reader SpringConsts (G.Graph k Particle)
+updateNetwork dt g = traverseWithIndex stuff g
   where
-  stuff label part = update dt (force label part) part
-  force label part = netForce consts (partNeighbors label) part
+  stuff label part = do
+    f <- netForce (partNeighbors label) part
+    pure $ update dt f part
   partNeighbors label = L.mapMaybe
     ( \neighborLabel -> G.lookup neighborLabel g
     )

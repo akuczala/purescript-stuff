@@ -16,11 +16,15 @@ module Data.Graph
 
 import Prelude
 
+import Data.Foldable (class Foldable, foldl, foldr, foldMap)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Map (findMax)
 import Data.Map as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set as S
+import Data.Traversable (class Traversable, traverse, sequence)
+import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (class Unfoldable)
 
@@ -87,3 +91,20 @@ instance Functor (Graph k) where
 
 instance FunctorWithIndex k (Graph k) where
   mapWithIndex f (Graph g) = newGraph (mapWithIndex f g.verts) g.edges
+
+instance Foldable (Graph k) where
+  foldl f b0 (Graph g) = foldl f b0 g.verts
+  foldr f b0 (Graph g) = foldr f b0 g.verts
+  foldMap f (Graph g) = foldMap f g.verts
+
+instance FoldableWithIndex k (Graph k) where
+  foldlWithIndex f b0 (Graph g) = (foldlWithIndex f b0 g.verts)
+  foldrWithIndex f b0 (Graph g) = (foldrWithIndex f b0 g.verts)
+  foldMapWithIndex f (Graph g) = (foldMapWithIndex f g.verts)
+
+instance Traversable (Graph k) where
+  traverse f (Graph g) = map (\verts -> newGraph verts g.edges) (traverse f g.verts)
+  sequence (Graph g) = map (\verts -> newGraph verts g.edges) (sequence g.verts)
+
+instance TraversableWithIndex k (Graph k) where
+  traverseWithIndex f (Graph g) = map (\verts -> newGraph verts g.edges) (traverseWithIndex f g.verts)
