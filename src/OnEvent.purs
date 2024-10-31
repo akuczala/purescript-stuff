@@ -8,7 +8,7 @@ import Prelude
 import Constants (nodeRadius, springConsts)
 import Control.Alternative (guard)
 import Control.Monad.State (StateT, get, modify, modify_, put)
-import Data.Graph (addVertex, modifyVertex, toMap)
+import Data.Graph (Edge(..), addEdge, addVertex, modifyVertex, toMap)
 import Data.Int (toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
@@ -57,6 +57,7 @@ onEvent (MouseUp _) = do
 onEvent (KeyDown e) = do
   case map key (KB.fromEvent e) of
     Just "c" -> onCreateNodeEvent
+    Just "e" -> modify_ createEdge
     _ -> pure unit
 
 onEvent (Wheel _) = pure unit
@@ -87,6 +88,15 @@ onCreateNodeEvent = do
           Just mPos -> s { graph = addVertex { x: mPos, v: zero, m: 1.0 } s.graph }
           Nothing -> s
     )
+
+createEdge :: GlobalState -> GlobalState
+createEdge state = fromMaybe state do
+  selectedLabel <- state.selectedVertex
+  (Tuple targetLabel _) <- nodeCloseToMouse nodeRadius state
+  guard $ selectedLabel /= targetLabel
+  pure state
+    { graph = addEdge (Edge targetLabel selectedLabel) state.graph
+    }
 
 update :: GlobalState -> GlobalState
 update state = testMoveNode $ state

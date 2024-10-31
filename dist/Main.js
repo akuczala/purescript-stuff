@@ -4654,7 +4654,7 @@
             return g;
           }
           ;
-          throw new Error("Failed pattern match at Data.Graph (line 56, column 22 - line 58, column 15): " + [v.constructor.name]);
+          throw new Error("Failed pattern match at Data.Graph (line 57, column 22 - line 59, column 15): " + [v.constructor.name]);
         };
       };
     };
@@ -4684,7 +4684,7 @@
           return Nothing.value;
         }
         ;
-        throw new Error("Failed pattern match at Data.Graph (line 33, column 1 - line 33, column 55): " + [k.constructor.name, v.constructor.name]);
+        throw new Error("Failed pattern match at Data.Graph (line 34, column 1 - line 34, column 55): " + [k.constructor.name, v.constructor.name]);
       };
     };
   };
@@ -4703,6 +4703,14 @@
         return v3.key;
       })(findMax(v1.verts))) | 0;
       return setVertex1(newLabel)(v)(v1);
+    };
+  };
+  var addEdge = function(dictOrd) {
+    var insert3 = insert2(ordEdge(dictOrd));
+    return function(e) {
+      return function(v) {
+        return newGraph(v.verts)(insert3(e)(v.edges));
+      };
     };
   };
 
@@ -5097,6 +5105,7 @@
   var pure1 = /* @__PURE__ */ pure(applicativeMaybe);
   var modifyVertex2 = /* @__PURE__ */ modifyVertex(ordInt);
   var updateNetwork2 = /* @__PURE__ */ updateNetwork(ordInt);
+  var addEdge2 = /* @__PURE__ */ addEdge(ordInt);
   var bind22 = /* @__PURE__ */ bind(/* @__PURE__ */ bindStateT(monadAff));
   var monadStateStateT2 = /* @__PURE__ */ monadStateStateT(monadAff);
   var get2 = /* @__PURE__ */ get(monadStateStateT2);
@@ -5117,27 +5126,27 @@
   var onCreateNodeEvent = function(dictMonad) {
     return modify_(monadStateStateT(dictMonad))(function(s) {
       if (s.mousePos instanceof Just) {
-        var $55 = {};
-        for (var $56 in s) {
-          if ({}.hasOwnProperty.call(s, $56)) {
-            $55[$56] = s[$56];
+        var $59 = {};
+        for (var $60 in s) {
+          if ({}.hasOwnProperty.call(s, $60)) {
+            $59[$60] = s[$60];
           }
           ;
         }
         ;
-        $55.graph = addVertex({
+        $59.graph = addVertex({
           x: s.mousePos.value0,
           v: zero2,
           m: 1
         })(s.graph);
-        return $55;
+        return $59;
       }
       ;
       if (s.mousePos instanceof Nothing) {
         return s;
       }
       ;
-      throw new Error("Failed pattern match at OnEvent (line 86, column 9 - line 88, column 23): " + [s.mousePos.constructor.name]);
+      throw new Error("Failed pattern match at OnEvent (line 87, column 9 - line 89, column 23): " + [s.mousePos.constructor.name]);
     });
   };
   var onCreateNodeEvent1 = /* @__PURE__ */ onCreateNodeEvent(monadAff);
@@ -5209,6 +5218,22 @@
       return pure1(new Vec(toNumber(clientX(m)), toNumber(clientY(m))));
     });
   };
+  var createEdge = function(state3) {
+    return fromMaybe(state3)(bind13(state3.selectedVertex)(function(selectedLabel) {
+      return bind13(nodeCloseToMouse(nodeRadius)(state3))(function(v) {
+        return discard2(guard2(selectedLabel !== v.value0))(function() {
+          return pure1({
+            canvas: state3.canvas,
+            ctx: state3.ctx,
+            mouseHeld: state3.mouseHeld,
+            mousePos: state3.mousePos,
+            selectedVertex: state3.selectedVertex,
+            graph: addEdge2(new Edge(v.value0, selectedLabel))(state3.graph)
+          });
+        });
+      });
+    }));
+  };
   var onEvent = function(v) {
     if (v instanceof MouseMove) {
       var v1 = getMousePos(v.value0);
@@ -5216,16 +5241,16 @@
         return bind22(get2)(function(state3) {
           return bind22(liftEffect6(toCanvasPos(state3.canvas)(v1.value0)))(function(newMousePos) {
             return modify_2(function(s) {
-              var $70 = {};
-              for (var $71 in s) {
-                if ({}.hasOwnProperty.call(s, $71)) {
-                  $70[$71] = s[$71];
+              var $77 = {};
+              for (var $78 in s) {
+                if ({}.hasOwnProperty.call(s, $78)) {
+                  $77[$78] = s[$78];
                 }
                 ;
               }
               ;
-              $70.mousePos = new Just(newMousePos);
-              return $70;
+              $77.mousePos = new Just(newMousePos);
+              return $77;
             });
           });
         });
@@ -5253,16 +5278,16 @@
     ;
     if (v instanceof MouseUp) {
       return modify_2(function(s) {
-        var $76 = {};
-        for (var $77 in s) {
-          if ({}.hasOwnProperty.call(s, $77)) {
-            $76[$77] = s[$77];
+        var $83 = {};
+        for (var $84 in s) {
+          if ({}.hasOwnProperty.call(s, $84)) {
+            $83[$84] = s[$84];
           }
           ;
         }
         ;
-        $76.mouseHeld = false;
-        return $76;
+        $83.mouseHeld = false;
+        return $83;
       });
     }
     ;
@@ -5270,6 +5295,10 @@
       var v1 = map12(key)(fromEvent(v.value0));
       if (v1 instanceof Just && v1.value0 === "c") {
         return onCreateNodeEvent1;
+      }
+      ;
+      if (v1 instanceof Just && v1.value0 === "e") {
+        return modify_2(createEdge);
       }
       ;
       return pure22(unit);

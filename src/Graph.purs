@@ -1,6 +1,7 @@
 module Data.Graph
   ( Edge(..)
   , Graph
+  , addEdge
   , addVertex
   , edgeContains
   , getEdges
@@ -56,6 +57,9 @@ modifyVertex :: forall k v. Ord k => k -> (v -> v) -> Graph k v -> Graph k v
 modifyVertex k f g = case lookup k g of
   Just v -> setVertex k (f v) g
   Nothing -> g
+
+addEdge :: forall k v. Ord k => Edge k -> Graph k v -> Graph k v
+addEdge e (Graph g) = newGraph g.verts (S.insert e g.edges)
 
 vertexMap :: forall k a b. (a -> b) -> Graph k a -> Graph k b
 vertexMap f (Graph g) = newGraph (map f g.verts) g.edges
