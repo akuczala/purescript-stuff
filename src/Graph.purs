@@ -1,6 +1,9 @@
 module Data.Graph
   ( Edge(..)
   , Graph
+  , GraphF(..)
+  , _edges
+  , _verts
   , addEdge
   , addVertex
   , edgeContains
@@ -19,9 +22,11 @@ import Prelude
 import Data.Foldable (class Foldable, foldl, foldr, foldMap)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
+import Data.Lens (Lens, lens, over, view)
 import Data.Map (findMax)
 import Data.Map as M
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Set as S
 import Data.Traversable (class Traversable, traverse, sequence)
 import Data.TraversableWithIndex (class TraversableWithIndex, traverseWithIndex)
@@ -41,43 +46,63 @@ edgeOther k (Edge k1 k2)
   | k == k2 = Just k1
   | otherwise = Nothing
 
-newtype Graph k v = Graph { verts :: (M.Map k v), edges :: (S.Set (Edge k)) }
+newtype GraphF k p v = Graph { verts :: (M.Map k v), edges :: (S.Set (Edge p)) }
 
-newGraph :: forall k v. (M.Map k v) -> (S.Set (Edge k)) -> Graph k v
+instance Newtype (GraphF k p v) { verts :: (M.Map k v), edges :: (S.Set (Edge p)) }
+
+_verts
+  :: forall k p a b
+   . Lens (GraphF k p a) (GraphF k p b) (M.Map k a) (M.Map k b)
+_verts = lens (unwrap >>> _.verts) (\g vs -> wrap $ (unwrap g) { verts = vs })
+
+_edges
+  :: forall k v a b
+   . Lens (GraphF k a v) (GraphF k b v) (S.Set (Edge a)) (S.Set (Edge b))
+_edges = lens (unwrap >>> _.edges) (\g es -> wrap $ (unwrap g) { edges = es })
+
+type Graph k v = GraphF k k v
+
+newGraph :: forall k p v. (M.Map k v) -> (S.Set (Edge p)) -> GraphF k p v
 newGraph vs es = Graph { verts: vs, edges: es }
 
 neighbors :: forall k v. Ord k => k -> Graph k v -> S.Set k
 neighbors k (Graph g) = S.mapMaybe (edgeOther k) g.edges
 
-setVertex :: forall k v. Ord k => k -> v -> Graph k v -> Graph k v
-setVertex k v (Graph g) = newGraph (M.insert k v g.verts) g.edges
+setVertex :: forall k p v. Ord k => k -> v -> GraphF k p v -> GraphF k p v
+setVertex k v = over _verts (M.insert k v)
 
 addVertex :: forall v. v -> Graph Int v -> Graph Int v
 addVertex v (Graph g) = setVertex newLabel v (Graph g)
   where
   newLabel = 1 + (fromMaybe (-1) <<< map _.key $ findMax g.verts)
 
-modifyVertex :: forall k v. Ord k => k -> (v -> v) -> Graph k v -> Graph k v
+modifyVertex
+  :: forall k p v
+   . Ord k
+  => k
+  -> (v -> v)
+  -> GraphF k p v
+  -> GraphF k p v
 modifyVertex k f g = case lookup k g of
   Just v -> setVertex k (f v) g
   Nothing -> g
 
-addEdge :: forall k v. Ord k => Edge k -> Graph k v -> Graph k v
-addEdge e (Graph g) = newGraph g.verts (S.insert e g.edges)
+addEdge :: forall k p v. Ord p => Edge p -> GraphF k p v -> GraphF k p v
+addEdge e = over _edges (S.insert e)
 
-vertexMap :: forall k a b. (a -> b) -> Graph k a -> Graph k b
-vertexMap f (Graph g) = newGraph (map f g.verts) g.edges
+vertexMap :: forall k p a b. (a -> b) -> GraphF k p a -> GraphF k p b
+vertexMap f g = over _verts (map f) g
 
-toMap :: forall k v. Graph k v -> M.Map k v
-toMap (Graph g) = g.verts
+toMap :: forall k p v. GraphF k p v -> M.Map k v
+toMap = view _verts
 
 getVerts :: forall f k v. Unfoldable f => Graph k v -> f (Tuple k v)
 getVerts (Graph g) = M.toUnfoldable g.verts
 
 getEdges :: forall k v. Graph k v -> S.Set (Edge k)
-getEdges (Graph g) = g.edges
+getEdges = view _edges
 
-lookup :: forall k v. Ord k => k -> Graph k v -> Maybe v
+lookup :: forall k p v. Ord k => k -> GraphF k p v -> Maybe v
 lookup k (Graph g) = M.lookup k g.verts
 
 instance Eq a => Eq (Edge a) where
@@ -86,25 +111,25 @@ instance Eq a => Eq (Edge a) where
 instance Ord a => Ord (Edge a) where
   compare (Edge a b) (Edge c d) = compare (Tuple a b) (Tuple c d)
 
-instance Functor (Graph k) where
+instance Functor (GraphF k p) where
   map = vertexMap
 
-instance FunctorWithIndex k (Graph k) where
+instance FunctorWithIndex k (GraphF k p) where
   mapWithIndex f (Graph g) = newGraph (mapWithIndex f g.verts) g.edges
 
-instance Foldable (Graph k) where
+instance Foldable (GraphF k p) where
   foldl f b0 (Graph g) = foldl f b0 g.verts
   foldr f b0 (Graph g) = foldr f b0 g.verts
   foldMap f (Graph g) = foldMap f g.verts
 
-instance FoldableWithIndex k (Graph k) where
+instance FoldableWithIndex k (GraphF k p) where
   foldlWithIndex f b0 (Graph g) = (foldlWithIndex f b0 g.verts)
   foldrWithIndex f b0 (Graph g) = (foldrWithIndex f b0 g.verts)
   foldMapWithIndex f (Graph g) = (foldMapWithIndex f g.verts)
 
-instance Traversable (Graph k) where
+instance Traversable (GraphF k p) where
   traverse f (Graph g) = map (\verts -> newGraph verts g.edges) (traverse f g.verts)
   sequence (Graph g) = map (\verts -> newGraph verts g.edges) (sequence g.verts)
 
-instance TraversableWithIndex k (Graph k) where
+instance TraversableWithIndex k (GraphF k p) where
   traverseWithIndex f (Graph g) = map (\verts -> newGraph verts g.edges) (traverseWithIndex f g.verts)

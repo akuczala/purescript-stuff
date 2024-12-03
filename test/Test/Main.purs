@@ -1,12 +1,12 @@
 module Test.Main
   ( main
-  , springConsts
   , testGraph
   )
   where
 
 import Prelude
 
+import Constants (springConsts)
 import Control.Monad.Reader (runReader)
 import Data.Graph (Edge(..), Graph, getVerts, neighbors, newGraph)
 import Data.List (scanl)
@@ -18,10 +18,8 @@ import Data.Vector2 (getX, oneX)
 import Effect (Effect)
 import Effect.Class.Console (log)
 import Geometry (Point, smul)
-import Springy (Particle, SpringConsts, updateNetwork)
+import Springy (Particle, updateNetwork)
 
-springConsts :: SpringConsts
-springConsts = {k: 1.0, dx: 1.0, drag: 0.0}
 main :: Effect Unit
 main = do
   log "🍕"

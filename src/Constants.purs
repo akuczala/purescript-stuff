@@ -1,12 +1,13 @@
 module Constants
-  ( edgeColor
+  ( SpringConsts
+  , edgeColor
   , nodeColor
   , nodeRadius
   , selectedNodeColor
   , springConsts
   ) where
 
-import Springy (SpringConsts)
+import Geometry (Field)
 
 nodeColor :: String
 nodeColor = "#ffaa00"
@@ -20,5 +21,19 @@ edgeColor = "#ffffff"
 nodeRadius :: Number
 nodeRadius = 10.0
 
+type SpringConsts =
+  { k :: Field
+  , dx :: Field
+  , drag :: Field
+  , q :: Field
+  , minElectricalDistance :: Field
+  }
+
 springConsts :: SpringConsts
-springConsts = { k: 0.01, dx: 100.0, drag: 5.0 }
+springConsts =
+  { k: 0.01
+  , dx: 100.0
+  , drag: 10.0
+  , q: 100.0
+  , minElectricalDistance: 5.0
+  }

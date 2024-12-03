@@ -16,6 +16,7 @@
             "lists",
             "partial",
             "prelude",
+            "profunctor-lenses",
             "tailrec",
             "tuples",
             "vectors",
