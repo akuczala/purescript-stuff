@@ -6,27 +6,23 @@ module Port.Draw
 
 import Prelude
 
-import Constants (edgeColor, nodeColor, nodeRadius, portColor, selectedNodeColor)
-import Control.Applicative ((*>))
+import Constants (edgeColor, nodeColor, portColor, selectedNodeColor)
 import Data.Array as A
-import Data.FastVect.FastVect (Vect)
-import Data.Foldable (sequence_, traverse_)
+import Data.Foldable (traverse_)
 import Data.Graph (lookup)
 import Data.Graph as G
 import Data.Lens (view)
 import Data.Map as M
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Number (pi)
-import Data.Set as S
-import Data.Traversable (traverse)
-import Data.Tuple (Tuple, snd, uncurry)
+import Data.Tuple (Tuple, snd)
 import Draw (drawCircle, drawLine, drawTriangle)
 import Effect (Effect)
 import Geometry (Point, circlePoints, smul)
 import Graphics.Canvas (Context2D, clearRect, fillPath, setFillStyle, setStrokeStyle)
 import Port.InteractionNet (IPort(..), NodeType(..))
 import Port.State (GlobalState, NodePos, particleToPos)
-import PortGraph (PortGraph, _nodeLabel, _port, getNodePorts, nodeOrder)
+import PortGraph (PortGraph, _nodeLabel, _port)
 
 drawNetwork :: forall k
   . Ord k

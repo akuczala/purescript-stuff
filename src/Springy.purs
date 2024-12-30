@@ -15,8 +15,6 @@ import Control.Monad.Reader (Reader, asks)
 import Data.Foldable (class Foldable, sum)
 import Data.Graph as G
 import Data.List as L
-import Data.Map as M
-import Data.Set as S
 import Data.Traversable (class Traversable, sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)

@@ -14,7 +14,6 @@ import Data.Graph as G
 import Data.Map as M
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple, snd)
-import Data.Vector2 as V
 import Draw (drawCircle, drawLine)
 import Effect (Effect)
 import Geometry (Point)

@@ -6,7 +6,6 @@ package:
     - console
     - coroutines
     - effect
-    - fast-vect
     - foldable-traversable
     - integers
     - js-timers

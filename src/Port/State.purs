@@ -13,8 +13,8 @@ module Port.State
 
 import Prelude
 
-import Data.Graph (Edge(..), Graph, newGraph)
-import Data.Lens (Lens', Lens)
+import Data.Graph (Edge(..), newGraph)
+import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Map as M
 import Data.Maybe (Maybe(..))

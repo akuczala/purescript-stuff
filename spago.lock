@@ -10,7 +10,6 @@
             "console",
             "coroutines",
             "effect",
-            "fast-vect",
             "foldable-traversable",
             "integers",
             "js-timers",
@@ -47,8 +46,6 @@
             "enums",
             "exceptions",
             "exists",
-            "fast-vect",
-            "filterable",
             "foldable-traversable",
             "foreign",
             "foreign-object",
@@ -873,38 +870,6 @@
       "integrity": "sha256-A0JQHpTfo1dNOj9U5/Fd3xndlRSE0g2IQWOGor2yXn8=",
       "dependencies": [
         "unsafe-coerce"
-      ]
-    },
-    "fast-vect": {
-      "type": "registry",
-      "version": "1.2.0",
-      "integrity": "sha256-0DbjZ1E95RSqwb5STe7LtdI60TloSHxOa9rkYBQyt2I=",
-      "dependencies": [
-        "arrays",
-        "distributive",
-        "filterable",
-        "foldable-traversable",
-        "lists",
-        "maybe",
-        "ordered-collections",
-        "prelude",
-        "profunctor",
-        "tuples",
-        "unfoldable",
-        "unsafe-coerce"
-      ]
-    },
-    "filterable": {
-      "type": "registry",
-      "version": "5.0.0",
-      "integrity": "sha256-cCojJHRnTmpY1j1kegI4CFwghdQ2Fm/8dzM8IlC+lng=",
-      "dependencies": [
-        "arrays",
-        "either",
-        "foldable-traversable",
-        "identity",
-        "lists",
-        "ordered-collections"
       ]
     },
     "foldable-traversable": {
