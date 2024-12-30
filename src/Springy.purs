@@ -2,7 +2,10 @@ module Springy
   ( Force
   , Particle
   , Velocity
+  , firstOrderUpdate
+  , netForce
   , updateNetwork
+  , updateParticle
   ) where
 
 import Prelude
@@ -12,6 +15,8 @@ import Control.Monad.Reader (Reader, asks)
 import Data.Foldable (class Foldable, sum)
 import Data.Graph as G
 import Data.List as L
+import Data.Map as M
+import Data.Set as S
 import Data.Traversable (class Traversable, sequence, traverse)
 import Data.TraversableWithIndex (traverseWithIndex)
 import Data.Tuple (Tuple(..), snd)
@@ -61,11 +66,12 @@ firstOrderUpdate dt f part =
     part { x = part.x + dt `smul` v, v = v }
 
 netForce
-  :: forall f
+  :: forall f g
    . Foldable f
   => Traversable f
-  => Functor f
-  => { neighbors :: f Particle, allOthers :: f Particle }
+  => Foldable g
+  => Traversable g
+  => { neighbors :: f Particle, allOthers :: g Particle }
   -> Particle
   -> Reader SpringConsts Force
 netForce parts part = sum <$> sequence
@@ -74,6 +80,46 @@ netForce parts part = sum <$> sequence
   , sum <$> traverse (\parti -> electricalForce parti.x part.x) parts.allOthers
   ]
 
+-- updateSystem ::
+--   forall f k
+--   . Foldable f
+--   => Traversable f
+--   => Ord k
+--   => Field
+--   -> (k -> f Particle) -- neighbor function
+--   -> (k -> Particle)
+--   -> Reader SpringConsts (k -> Particle)
+-- updateSystem dt neighborsOf g = traverseWithIndex stuff g
+--   where
+--   stuff label part = do
+--     force <- netForce { neighbors: neighborsOf label, allOthers: allOthers label } part
+--     pure $ firstOrderUpdate dt force part
+--   allOthers :: k -> L.List Particle
+--   allOthers label = g # M.toUnfoldable
+--     >>> L.filter (\(Tuple k _) -> k /= label)
+--     >>> map snd
+
+updateParticle
+  :: forall k
+   . Ord k
+  => Field
+  -> G.Graph k Particle
+  -> k
+  -> Particle
+  -> Reader SpringConsts Particle
+updateParticle dt g label particle = do
+  f <- netForce { neighbors, allOthers } particle
+  pure $ firstOrderUpdate dt f particle
+  where
+  neighbors = L.mapMaybe
+    ( \neighborLabel -> G.lookup neighborLabel g
+    )
+    ( L.fromFoldable $ G.neighbors label g
+    )
+  allOthers = g # G.getVerts
+    >>> L.filter (\(Tuple k _) -> k /= label)
+    >>> map snd
+
 -- TODO: put dt in reader
 updateNetwork
   :: forall k
@@ -81,17 +127,4 @@ updateNetwork
   => Field
   -> G.Graph k Particle
   -> Reader SpringConsts (G.Graph k Particle)
-updateNetwork dt g = traverseWithIndex stuff g
-  where
-  stuff label part = do
-    f <- netForce { neighbors: partNeighbors label, allOthers: allOthers label } part
-    pure $ firstOrderUpdate dt f part
-  partNeighbors label = L.mapMaybe
-    ( \neighborLabel -> G.lookup neighborLabel g
-    )
-    ( L.fromFoldable $ G.neighbors label g
-    )
-  allOthers label = g # G.getVerts
-    >>> L.filter (\(Tuple k _) -> k /= label)
-    >>> map snd
-
+updateNetwork dt g = traverseWithIndex (updateParticle dt g) g

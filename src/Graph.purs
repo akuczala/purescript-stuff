@@ -35,6 +35,9 @@ import Data.Unfoldable (class Unfoldable)
 
 data Edge k = Edge k k
 
+instance Functor Edge where
+  map f (Edge k1 k2) = Edge (f k1) (f k2)
+
 edgeContains :: forall k. Ord k => k -> Edge k -> Boolean
 edgeContains k (Edge k1 k2) = case [ compare k k1, compare k k2 ] of
   [ EQ, EQ ] -> true
@@ -96,10 +99,10 @@ vertexMap f g = over _verts (map f) g
 toMap :: forall k p v. GraphF k p v -> M.Map k v
 toMap = view _verts
 
-getVerts :: forall f k v. Unfoldable f => Graph k v -> f (Tuple k v)
+getVerts :: forall f k v p. Unfoldable f => GraphF k p v -> f (Tuple k v)
 getVerts (Graph g) = M.toUnfoldable g.verts
 
-getEdges :: forall k v. Graph k v -> S.Set (Edge k)
+getEdges :: forall k p v. GraphF k p v -> S.Set (Edge p)
 getEdges = view _edges
 
 lookup :: forall k p v. Ord k => k -> GraphF k p v -> Maybe v

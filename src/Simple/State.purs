@@ -1,4 +1,4 @@
-module State where
+module Simple.State where
 
 import Prelude
 

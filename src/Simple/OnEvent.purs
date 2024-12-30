@@ -1,4 +1,4 @@
-module OnEvent
+module Simple.OnEvent
   ( onEvent
   ) where
 
@@ -13,14 +13,14 @@ import Data.Int (toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Data.Vector2 (Vec(..))
-import Draw (render)
+import Simple.Draw (render)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Events (MyEvent(..))
 import Geometry (Field, Point, closestPoint, distance)
 import Springy (updateNetwork)
-import State (GlobalState)
+import Simple.State (GlobalState)
 import Web.DOM (Element)
 import Web.DOM.Element (getBoundingClientRect)
 import Web.Event.Event (Event)
